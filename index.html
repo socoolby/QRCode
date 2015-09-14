@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="StyleSheet" type="text/css" href="qrcode/default.css">
+        <title>QRCode</title>
+        <style type="text/css">
+            body { overflow-y: scroll; }
+            html *, body * { font-family: MICROSOFT YAHEI, serif; }
+            textarea { resize: none; width: 100%; }
+            button { margin: 0; }
+        </style>
+        <link rel="stylesheet" type="text/css" media="all" href="qrcode/style.css" />
+    </head>
+    <body>
+    <div id='div_copytip' style="width:80px;background:#a4a4a4;color:#fff;display: none;position: fixed;text-align:center;z-index:999;left: 50%;margin-left:-40px;top:48%;float: left;opacity: 0.87;border-radius: 10px;">
+        <p>已复制</p>
+    </div>
+        <div class="main">
+            <ul class="content clearfix">
+                <li class="encode selected">
+                    <p>输入文本：</p>
+
+                    <div><textarea id="encode-text" ></textarea></div>
+                    <a href="#"><p id="show_options">显示选项</p></a>
+                    <div style="display: none" id="options">
+                        <p>
+                            <label>纠错等级：</label>
+                            <select id="encode-eclevel">
+                                <option value="1">Level L (7%)</option>
+                                <option value="0">Level M (15%)</option>
+                                <option value="3">Level Q (25%)</option>
+                                <option value="2" selected>Level H (30%)</option>
+                            </select>
+                            <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;编码方式：</label>
+                            <select id="encode-mode">
+                                <option value="4" selected>8bit</option>
+                                <option value="2">Alphanumeric</option>
+                                <option value="1">Numeric</option>
+                            </select>
+                        </p>
+                        <p><z>                                          </z>
+                            <label>色块大小：</label>
+                            <input id="encode-msize" type="number" min="1" max="10" value="5"/>
+                            <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;留白大小：</label>
+                            <input id="encode-margin" type="number" min="0" max="10" value="4"/>
+                        </p>
+
+                        <p>
+                            <label>前景色：</label>
+                            <input type="color" value="#000000" id="encode-mcolor"/>
+                            <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;背景色：</label>
+                            <input type="color" value="#ffffff" id="encode-bgcolor"/>
+                        </p>
+
+                        <p>图标：</p>
+
+                        <p>
+                            <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logo：</label>
+                            <input type="file" name="files[]" id="encode-logo"/>
+                        </p>
+
+                        <p>
+                            <label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LogoUrl：</label>
+                            <input type="url" id="encode-logourl"/>
+                            <button id="encode-logobtn">加载Logo</button>
+                        </p>
+
+                        <div>
+                            <canvas id="logo-canvas"></canvas>
+                        </div>
+
+                        <p>
+                            <button id="encode-btn">设置</button>
+                        </p>
+                    </div>
+
+                    <div id="encode-canvas"  ></div>
+                    <p id="qrcode_div" style="margin-left: auto;margin-right: auto" >
+                        <img id="qrcode_img">
+                    </p>
+
+                    <p>解码</p>
+                    <form id="upload" action="" method="POST" enctype="multipart/form-data">
+
+                        <!--<fieldset>-->
+                            <input style="width: 80%;display:none;float: left"  type="file" id="fileselect" name="fileselect[]" multiple="multiple" />
+
+                        <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+
+                        <div style="background:#EEE;height: 120px;background-image: url(imgs/fileIcon.png);background-size: auto 100%;background-position: center;background-repeat: no-repeat;" id="filedrag" >
+                            <canvas id="decode-canvas" style="height:100%;float: right;margin-right: 20px;"></canvas>
+
+                        </div>
+
+                        <div id="submitbutton">
+                            <button type="submit">Upload Files</button>
+                        </div>
+
+                        <!--</fieldset>-->
+
+                        </form>
+                        <div>
+
+
+                        </div>
+                         <p id="decode-text" class="hide">解码值为：<a href="#" id="inputTest">复制</a> <br/><br/><textarea id="decodeTextarea"></textarea></p>
+                </li>
+            </ul>
+
+        </div>
+
+        <script src="qrcode/jquery-1.11.1.js"></script>
+        <script type="text/javascript" src="js/reedsolomon.js"></script>
+        <script type="text/javascript" src="js/qrbase.js"></script>
+        <script type="text/javascript" src="js/decode.js"></script>
+        <script type="text/javascript" src="js/qrdecode.js"></script>
+        <script type="text/javascript" src="js/encode.js"></script>
+        <script type="text/javascript" src="js/qrcode.js"></script>
+        <script type="text/javascript" src="js/render.table.js"></script>
+        <script type="text/javascript" src="js/render.canvas.js"></script>
+        <script type="text/javascript" src="js/render.em.js"></script>
+        <script type="text/javascript" src="js/filedrag.js"></script>
+        <script type="text/javascript" src="qrcode/jquery.zclip.js"></script>
+        <script language="javascript">
+            function show_copytip()
+            {
+                $('#div_copytip').show();
+                setTimeout(function(){
+                    $('#div_copytip').hide();
+                },2000)
+            }
+            $('#show_options').on('click', function (e) {
+                var options=$('#options');
+                if(options.is(':hidden'))
+                {
+                    options.show();
+                    $('#show_options').text('隐藏选项');
+                }else
+                {
+                    options.hide();
+                    $('#show_options').text('显示选项');
+                }
+            })
+            $('#encode-text').keyup(function()
+            {
+                if($('#encode-text').val().length>3)
+                    $('#encode-btn').click();
+            })
+            $('#filedrag').on('click',function(){
+//                $('input[type=file,id=]').trigger('click');
+                $('#fileselect').trigger('click');
+//                $('input[id=fileselect]').trigger('click');
+//                alert('click');
+            });
+        </script>
+        <script type="text/javascript">
+            function renderLogo(canvas, url){
+                var img = new Image(),
+                    ctx = canvas.getContext('2d'),
+                    canvasSize = 200;
+
+                if (!url) {
+                    ctx.fillStyle = 'rgb(255, 255, 255)';
+                    ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+                    return;
+                }
+
+                img.onload = function (){
+                    var imgSize, zoom,
+                        imgW = img.width, imgH = img.height;
+
+                    canvas.width = canvasSize;
+                    canvas.height = canvasSize;
+
+                    ctx.fillStyle = 'rgb(255, 255, 255)';
+                    ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+                    imgSize = Math.max(imgW, imgH);
+
+                    if (imgSize > canvasSize) {
+                        zoom = canvasSize / imgSize;
+                        imgW = imgW * zoom;
+                        imgH = imgH * zoom;
+                    }
+
+                    ctx.drawImage(img, (canvasSize - imgW) / 2, (canvasSize - imgH) / 2, imgW, imgH);
+                };
+
+                img.src = url;
+            }
+
+            // Logo 加载
+            $('#encode-logo').on('change', function (e){
+                var canvas = $('#logo-canvas')[0],
+                    file = e.target.files[0],
+                    reader = new FileReader();
+
+                reader.onload = ( function (e){
+                    $(canvas).data('logo', e.target.result);
+                    renderLogo(canvas, e.target.result);
+                });
+
+                file && reader.readAsDataURL(file);
+            });
+
+            // Logo 加载（Url 方式）
+            $('#encode-logobtn').on('click', function (e){
+                var imgUrl = $('#encode-logourl').val(),
+                    canvas = $('#logo-canvas')[0];
+                $(canvas).data('logo', imgUrl);
+                renderLogo(canvas, imgUrl);
+            });
+            function convertCanvasToImage(canvas) {
+                var image = new Image();
+                    image.src = canvas.toDataURL();
+                return image;
+            }
+            function convertImageToCanvas(image) {
+                var canvas = document.createElement("canvas");
+                canvas.width = image.width;
+                canvas.height = image.height;
+                canvas.getContext("2d").drawImage(image, 0, 0);
+
+                return canvas;
+            }
+            // 生成二维码
+            var encodeCanvas;
+            $('#encode-btn').on('click', function (){
+                var config = {},
+                    encodeCanvas = $('#encode-canvas');
+                encodeCanvas.hide();
+
+                config.text = $('#encode-text').val();
+//                config.render = $('#encode-render').val();
+                config.render = 'canvas';
+                config.bgColor = $('#encode-bgcolor').val();
+                config.moduleColor = $('#encode-mcolor').val();
+                config.moduleSize = $('#encode-msize').val();
+                config.mode = Number($('#encode-mode').val());
+                config.ECLevel = Number($('#encode-eclevel').val());
+                config.margin = Number($('#encode-margin').val());
+                config.logo = $('#logo-canvas').data('logo');
+                config.error = function (e){
+                    encodeCanvas.html('');
+                    alert(e.message);
+                    throw (e);
+                };
+
+                if (!config.text) {
+                    alert("请输入文本");
+                    return;
+                }
+
+                encodeCanvas.QREncode(config);
+                setTimeout(function(){
+                    var canvas=document.getElementById('encode-canvas');
+                    var can=canvas.getElementsByTagName('canvas');
+                    var img=convertCanvasToImage(can[0]);
+                    var qrcode_img=document.getElementById('qrcode_img');
+                    qrcode_img.src=img.src;
+                },300);
+
+            });
+        </script>
+    </body>
+</html>

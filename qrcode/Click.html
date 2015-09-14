@@ -1,0 +1,54 @@
+<html>
+<head>
+	<title>Zero Clipboard Test</title>
+	<style type="text/css">
+		body { font-family:arial,sans-serif; font-size:9pt; }
+
+		.my_clip_button { width:150px; text-align:center; border:1px solid black; background-color:#ccc; margin:10px; padding:10px; cursor:default; font-size:9pt; }
+		.my_clip_button.hover { background-color:#eee; }
+		.my_clip_button.active { background-color:#aaa; }
+	</style>
+	<script type="text/javascript" src="ZeroClipboard.js"></script>
+    <script type="text/javascript" src="jquery-1.11.1.js"></script>
+
+</head>
+<body>
+<script type="text/javascript" src="jquery-1.11.1.js"></script>
+<script type="text/javascript" src="jquery.zclip.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+
+//        $('a#inputTest').zclip({
+//            path:'js/ZeroClipboard.swf',
+//            copy:'copyText'
+//        });
+        $("#inputTest").zclip({
+            path: "ZeroClipboard.swf",
+            copy: function(){
+                return 'copy';
+//                return $(this).prev().val();
+            }
+        });
+        $('#test').on('click',function(e)
+        {
+           $('#inputTest').onclick();
+        });
+
+        // The link with ID "copy-description" will copy
+        // the text of the paragraph with ID "description"
+
+
+//        $('a#inputTest').zclip({
+//            path:'js/ZeroClipboard.swf',
+//            copy:function(){return $('input#dynamic').val();}
+//        });
+
+        // The link with ID "copy-dynamic" will copy the current value
+        // of a dynamically changing input with the ID "dynamic"
+
+    });
+</script>
+<input value="test" id="test" type="button"/>
+<input id="inputTest" type="button" value="测试"  />
+</body>
+</html>
